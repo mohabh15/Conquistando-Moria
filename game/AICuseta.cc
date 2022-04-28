@@ -22,10 +22,22 @@ struct PLAYER_NAME : public Player {
    * Types and attributes for your player can be defined here.
    */
 
+  //Buscar al mago mas cerca si duende con poca vida 
+
+  //Buscar al duende mas cerca y con mas daño
+
+  //Ir a buscar tesoros -> solo hacerlo una vez y apuntarse donde estan los tesoros 
+  //Cada vez que se vaya a un tesoro mirar antes si aun tiene el tesoro o no
+
+   
+
   /**
    * Play method, invoked once per each round.
    */
-  virtual void play () {
+  virtual void play () 
+  {
+    
+
   }
 
 };
@@ -35,3 +47,14 @@ struct PLAYER_NAME : public Player {
  * Do not modify the following line.
  */
 RegisterPlayer(PLAYER_NAME);
+
+/*
+//Duende
+1. si hay enemigo cerca atacar
+2. orcos:
+2. trolls:
+4. balrog: mirar si esta a 2 casillas 
+
+
+
+*/
