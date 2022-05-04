@@ -1,6 +1,6 @@
 Moria 1.1
 nb_players           4
-nb_rounds          200
+nb_rounds          50
 nb_dwarves          20
 nb_wizards           5
 max_nb_orcs         20
