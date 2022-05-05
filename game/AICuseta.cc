@@ -113,7 +113,7 @@ struct PLAYER_NAME : public Player {
   vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
 
   bool bon_vei (const vector<vector<Cell>>& M, uint i, uint j) {
-    return i >= 0 and j >= 0 and i < M.size() and j < M[0].size() and M[i][j].type != Granite; //!GRANITE
+    return i >= 0 and j >= 0 and i < M.size() and j < M[0].size() and M[i][j].type != Granite; //añdir que tampoco sea un abismo
   }
 
   void bfs_tresor (vector<vector<Cell>> M, Pos origen) 
@@ -136,18 +136,21 @@ struct PLAYER_NAME : public Player {
         {
 	        dist[v_i][v_j] = dist[p.first][p.second] + 1;
           previo[v_i][v_j] = p;
-	        if (M[v_i][v_j].treasure) return;   //si encuentra un tesoro acaba == al destino/tesoro mas cerca
+	        if (M[v_i][v_j].treasure) return;   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
 	        Q.push({v_i,v_j});
         }
       }
     }
   }
 
-  void write(int v)   //Camino mas corto desde origen a v=destino=tesoro mas cerca
-  {
+  void write(int v)   //Camino mas corto desde origen a v=destino=tesoro mas cerca 
+  { //Acabar -> v=posicion que devuelve bfs
+    //vector<Pos> camino;
     if (v == origen) cout << v;
-    else {
-        write(pare[v]);
+    else 
+    {
+      write(pare[v]);
+      //camino_pushback(v);
         cout << " " << v;
     }
   }
@@ -171,35 +174,6 @@ struct PLAYER_NAME : public Player {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
 
 
 
@@ -234,6 +208,12 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
+      //Escapar de trolls a menos que tengan menos de 20p vida
+      else if (/* condition */)
+      {
+        /* code */
+      }
+      
       //Si hay cueva que no es mia
       /*else if(c1.type==Cave and c1.owner != me())
       {
