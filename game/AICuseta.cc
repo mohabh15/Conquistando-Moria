@@ -38,41 +38,6 @@ struct PLAYER_NAME : public Player {
     return ret;
   }
 
-  //tesoro mas cerca
-  vector<Pos> pos_tesoros;
-  Pos tesoro_mas_cerca(Unit &u)
-  {
-    Pos mas_cerca;
-    for(int i=2;i<59;++i)
-    {
-      for(int j=2;j<59;++j)
-      {
-        Pos posicion = Pos(i,j);
-        Cell celda = cell(posicion);
-        if(celda.treasure) pos_tesoros.push_back(posicion);
-      }
-    } 
-
-    unsigned int res_filas=0;
-    unsigned int res_columnas=0;
-    int sum_resta_anterior = 999;
-    //Analizamos las posiciones y comparamos la mas cerca
-    for(unsigned int i=0; i<pos_tesoros.size(); ++i)  
-    {
-      res_filas = abs(u.pos.i - pos_tesoros[i].i);
-      res_columnas = abs(u.pos.j - pos_tesoros[i].j);
-      int sum_resta_actual = res_filas + res_columnas;
-      if( sum_resta_actual < sum_resta_anterior)                           
-      { 
-        sum_resta_anterior = sum_resta_actual;
-        mas_cerca.i=pos_tesoros[i].i;
-        mas_cerca.j=pos_tesoros[i].j;
-      }
-    }
-    return mas_cerca;
-  }
-
-
 
   //Entrar dentro
   void entrar_dentro(Unit &u)   //añadir control unidades enemigas
@@ -108,72 +73,80 @@ struct PLAYER_NAME : public Player {
   }
 
 
-
+  //Variables i Estr. Dades
   const int INF = 1e9;
   vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
 
-  bool bon_vei (const vector<vector<Cell>>& M, uint i, uint j) {
-    return i >= 0 and j >= 0 and i < M.size() and j < M[0].size() and M[i][j].type != Granite; //añdir que tampoco sea un abismo
+  bool bon_vei (Pos celda) {
+    return celda.i >= 2 and celda.j >= 2 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss; 
   }
 
-  void bfs_tresor (vector<vector<Cell>> M, Pos origen) 
+  Pos bfs_tresor (vector<vector<Pos>> &previos, Pos origen) 
   {
-    vector<vector<int>> dist(M.size(),vector<int>(M[0].size(), INF));   //pones todos a distancia infinita
-    queue<pair<int,int>> Q;
-    vector<vector<pair<int,int>>> previo;
+    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
+    queue<Pos> Q;
 
-    Q.push({origen.i, origen.j});
+    Q.push(origen);
     dist[origen.i][origen.j] = 0;
 
     while (not Q.empty()) 
     {
-      pair<int,int> p = Q.front(); 
+      Pos p = Q.front(); 
       Q.pop();
       for (auto& d : dirs) {
-        int v_i = p.first + d.first;
-        int v_j = p.second + d.second;
-        if (bon_vei(M,v_i,v_j) and dist[v_i][v_j] == INF) 
+        Pos v=p+Pos(d.first,d.second);  //suma la posicio deberia estar bien?
+        cout<<p.i<<v.i<<endl;
+        if (bon_vei(v) and dist[v.i][v.j] == INF) 
         {
-	        dist[v_i][v_j] = dist[p.first][p.second] + 1;
-          previo[v_i][v_j] = p;
-	        if (M[v_i][v_j].treasure) return;   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
-	        Q.push({v_i,v_j});
+	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
+          previos[v.i][v.j]=p;
+	        Q.push(v);
+          if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
         }
       }
     }
+    return Pos(0,0);
   }
 
-  void write(int v)   //Camino mas corto desde origen a v=destino=tesoro mas cerca 
-  { //Acabar -> v=posicion que devuelve bfs
-    //vector<Pos> camino;
-    if (v == origen) cout << v;
-    else 
-    {
-      write(pare[v]);
-      //camino_pushback(v);
-        cout << " " << v;
-    }
-  }
+  
 
-
-  void camino_corto(Unit &u)
+  void ir_tesoro(Unit &u)
   {
     int n=rows(), m=cols();
-    vector<vector<Cell>> M(n,vector<Cell>(m));
-    for (int i = 2; i < n; ++i)
+    vector<vector<Pos>> previos(n,vector<Pos>(m));
+
+    Pos Destino = bfs_tresor(previos,u.pos);
+    cout<<Destino.i<<Destino.j<<endl;
+
+    Pos siguiente;
+    Pos previo = previos[Destino.i][Destino.j];
+    while(previo != u.pos)
     {
-      for (int j = 2; j < m; ++j)
-      {
-        M[i][j]=cell(i,j);
-      }
+      siguiente=previo;
+      previo = previos[previo.i][previo.j];
     }
-
-    bfs_tresor(M,u.pos);
-
+    
+    //Mover a siguiente
+    int fila = u.pos.j-siguiente.i;
+    int col = u.pos.j-siguiente.j;
+    if(fila==0)
+    {
+      if(col==1) command(u.id,Left);
+      else command(u.id,Right);
+    }
+    else if(fila==1)
+    {
+      if(col==0) command(u.id,Top);
+      else if(col==1) command(u.id,TL);
+      else command(u.id,RT);
+    }
+    else if(fila==-1)
+    {
+      if(col==0) command(u.id,Bottom);
+      else if(col==1) command(u.id,LB);
+      else command(u.id,BR);
+    }
   }
-
-
-
 
 
 
@@ -208,22 +181,10 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
-      //Escapar de trolls a menos que tengan menos de 20p vida
-      else if (/* condition */)
-      {
-        /* code */
-      }
-      
-      //Si hay cueva que no es mia
-      /*else if(c1.type==Cave and c1.owner != me())
-      {
-        command(u.id,Dir(d));
-        moved=true;
-      }*/
     }
     if(not moved)
     {
-      //ir_tesoro(u);
+      ir_tesoro(u);
     }
   }
 
@@ -276,16 +237,12 @@ struct PLAYER_NAME : public Player {
  */
 RegisterPlayer(PLAYER_NAME);
 
-/*
-//Duende
-1. si hay enemigo cerca atacar
-2. orcos:
-2. trolls:
-4. balrog: mirar si esta a 2 casillas 
 
 
 
-*/
+
+
+
 
 
 
@@ -461,6 +418,43 @@ RegisterPlayer(PLAYER_NAME);
     }
   }
 
+
+
+*/
+/*
+//tesoro mas cerca
+  vector<Pos> pos_tesoros;
+  Pos tesoro_mas_cerca(Unit &u)
+  {
+    Pos mas_cerca;
+    for(int i=2;i<59;++i)
+    {
+      for(int j=2;j<59;++j)
+      {
+        Pos posicion = Pos(i,j);
+        Cell celda = cell(posicion);
+        if(celda.treasure) pos_tesoros.push_back(posicion);
+      }
+    } 
+
+    unsigned int res_filas=0;
+    unsigned int res_columnas=0;
+    int sum_resta_anterior = 999;
+    //Analizamos las posiciones y comparamos la mas cerca
+    for(unsigned int i=0; i<pos_tesoros.size(); ++i)  
+    {
+      res_filas = abs(u.pos.i - pos_tesoros[i].i);
+      res_columnas = abs(u.pos.j - pos_tesoros[i].j);
+      int sum_resta_actual = res_filas + res_columnas;
+      if( sum_resta_actual < sum_resta_anterior)                           
+      { 
+        sum_resta_anterior = sum_resta_actual;
+        mas_cerca.i=pos_tesoros[i].i;
+        mas_cerca.j=pos_tesoros[i].j;
+      }
+    }
+    return mas_cerca;
+  }
 
 
 */
