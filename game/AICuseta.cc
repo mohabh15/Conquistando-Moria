@@ -88,7 +88,6 @@ struct PLAYER_NAME : public Player {
 
     Q.push(origen);
     dist[origen.i][origen.j] = 0;
-    //cout<<origen.i<<origen.j<<endl;
 
     while (not Q.empty()) 
     {
@@ -96,13 +95,11 @@ struct PLAYER_NAME : public Player {
       Q.pop();
       for (auto& d : dirs) {
         Pos v=p+Pos(d.first,d.second);  //suma la posicio deberia estar bien?
-        //cout<<p.i<<v.i<<endl;
         if (bon_vei(v) and dist[v.i][v.j] == INF) 
         {
 	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
           previos[v.i][v.j]=p;
 	        Q.push(v);
-          //cout<<v.i<<v.j<<endl;
           if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
         }
       }
