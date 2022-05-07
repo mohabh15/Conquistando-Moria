@@ -57,15 +57,6 @@ struct PLAYER_NAME : public Player {
     else command(u.id,Left);
   }
 
-
-
-
-
-
-
-
-
-
   //Si hay Balrog cerca
   vector<pair<int,int>> dirs_balrog = { {0,2},{1,2},{2,2},{-1,2},{-2,2},{0,-2},{1,-2},{2,-2},{-1,-2},{-2,-2},{2,0},{2,1},{2,-1},{-2,0},{-2,1},{2,-1}};
   bool balrog_cerca(Unit &u, Pos &balrog) 
@@ -79,7 +70,7 @@ struct PLAYER_NAME : public Player {
     return res;
   }
 
-  //Si hay troll o orco cerca
+  //Si hay troll cerca
   bool troll(Cell &enemigo) 
   {
     bool res=false;
@@ -91,47 +82,49 @@ struct PLAYER_NAME : public Player {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
   //Variables i Estr. Dades
   const int INF = 1e9;
   vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
   bool bon_vei (Pos celda) {
     return celda.i >= 0 and celda.j >= 0 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss; 
   }
-  Pos bfs_tresor (vector<vector<Pos>> &previos, Pos origen) 
+
+  Pos djsktra_tresor (vector<vector<Pos>> &previos, Pos origen) 
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
     queue<Pos> Q;
 
+
     Q.push(origen);
     dist[origen.i][origen.j] = 0;
-
     while (not Q.empty()) 
     {
       Pos p = Q.front(); 
       Q.pop();
       for (auto& d : dirs) {
-        Pos v=p+Pos(d.first,d.second);  
-        if (bon_vei(v) and dist[v.i][v.j] == INF) 
+        Pos v=p+Pos(d.first,d.second);
+        if (bon_vei(v)) 
         {
-	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
-          previos[v.i][v.j]=p;
-	        Q.push(v);
-          if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+          if(cell(v).type == Cave or cell(v).type == Outside)
+          {
+            if(dist[v.i][v.j] > dist[p.i][p.j] + 1)
+            {
+              dist[v.i][v.j] = dist[p.i][p.j] + 1;
+              previos[v.i][v.j]=p;
+              Q.push(v);
+              if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+            }
+          }
+          else
+          {
+            if(dist[v.i][v.j] > dist[p.i][p.j] + cell(p).turns)
+            {
+              dist[v.i][v.j] = dist[p.i][p.j] + cell(p).turns;
+              previos[v.i][v.j]=p;
+              Q.push(v);
+              if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+            }
+          }
         }
       }
     }
@@ -143,7 +136,7 @@ struct PLAYER_NAME : public Player {
     int n=rows(), m=cols();
     vector<vector<Pos>> previos(n,vector<Pos>(m));
 
-    Pos Destino = bfs_tresor(previos,u.pos);
+    Pos Destino = djsktra_tresor(previos,u.pos);
     Pos siguiente;
     Pos previo = previos[Destino.i][Destino.j];
     while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
@@ -174,13 +167,11 @@ struct PLAYER_NAME : public Player {
   }
 
 
-
-
+  //Buscar el duende mas cerca -> mejora: con menos vida
   vector<pair<int,int>> dirs_wizards = { {0,1},{1,0},{0,-1},{-1,0}};
   bool bon_vei_wizards (Pos celda) {
   return celda.i >= 2 and celda.j >= 2 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
   }
-  //Buscar el duende mas cerca con menos vida
   Pos buscar_dwarv (vector<vector<Pos>> &previos, Pos origen) 
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
@@ -342,11 +333,6 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
-      /*else if(c1.owner != me() and c1.type==Cave) 
-      {
-        command(u.id,Dir(d));
-        moved=true;
-      }*/
     }
     /*if(nb_rounds() < 50 and not moved) //ir a tesoros cuando tengamos varias unidades y cuevas conquistadas
     {
@@ -414,3 +400,30 @@ RegisterPlayer(PLAYER_NAME);
 
 //CONSEGUIR NO MORIR: COMO USAR BIEN LOS MAGOS 
 
+
+
+/*Pos bfs_tresor (vector<vector<Pos>> &previos, Pos origen) 
+  {
+    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
+    queue<Pos> Q;
+
+    Q.push(origen);
+    dist[origen.i][origen.j] = 0;
+
+    while (not Q.empty()) 
+    {
+      Pos p = Q.front(); 
+      Q.pop();
+      for (auto& d : dirs) {
+        Pos v=p+Pos(d.first,d.second);  
+        if (bon_vei(v) and dist[v.i][v.j] == INF) 
+        {
+	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
+          previos[v.i][v.j]=p;
+	        Q.push(v);
+          if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+        }
+      }
+    }
+    return Pos(0,0);
+  }*/
