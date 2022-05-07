@@ -93,8 +93,6 @@ struct PLAYER_NAME : public Player {
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
     queue<Pos> Q;
-
-
     Q.push(origen);
     dist[origen.i][origen.j] = 0;
     while (not Q.empty()) 
@@ -102,7 +100,7 @@ struct PLAYER_NAME : public Player {
       Pos p = Q.front(); 
       Q.pop();
       for (auto& d : dirs) {
-        Pos v=p+Pos(d.first,d.second);
+        Pos v=p+Pos(d.first,d.second);  
         if (bon_vei(v)) 
         {
           if(cell(v).type == Cave or cell(v).type == Outside)
@@ -111,25 +109,25 @@ struct PLAYER_NAME : public Player {
             {
               dist[v.i][v.j] = dist[p.i][p.j] + 1;
               previos[v.i][v.j]=p;
-              Q.push(v);
-              if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+              Q.push(v); 
             }
           }
           else
           {
-            if(dist[v.i][v.j] > dist[p.i][p.j] + cell(p).turns)
+            if(dist[v.i][v.j] > dist[p.i][p.j] + cell(v).turns)
             {
-              dist[v.i][v.j] = dist[p.i][p.j] + cell(p).turns;
+              dist[v.i][v.j] = dist[p.i][p.j] + cell(v).turns;
               previos[v.i][v.j]=p;
-              Q.push(v);
-              if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
+              Q.push(v); 
             }
           }
+          if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
         }
       }
     }
     return Pos(0,0);
   }
+  
 
   void ir_tesoro(Unit &u)
   {
@@ -276,7 +274,7 @@ struct PLAYER_NAME : public Player {
     }
   }
 
-  //En dwarv en cueva 
+  //dwarv en cueva 
   void dwarv_cueva(Unit &u)
   {
     bool moved=false;
@@ -310,18 +308,10 @@ struct PLAYER_NAME : public Player {
         command(u.id,Dir(d));
         moved=true;
       }
-      else if(c1.id!= -1 and troll(c1))
-      {
-        //escapar
-        if(d>3) command(u.id,Dir(d-4)); 
-        else command(u.id,Dir(d+4));
-        moved=true;
-
-      }
       //Si hay enemigo con poca vida
       else if(c1.id!= -1 and not unidad_mia(c1.id))
       {
-        if(unit(c1.id).health < 101 /*and not troll*/) //mejora: si es una unidad de otro clan y la diferencia de vida es 20 0 mayor
+        if(unit(c1.id).health < 101 and not troll(c1)) //mejora: si es una unidad de otro clan y la diferencia de vida es 20 0 mayor
         {
           command(u.id,Dir(d));
           moved=true;
@@ -334,11 +324,6 @@ struct PLAYER_NAME : public Player {
         }
       }
     }
-    /*if(nb_rounds() < 50 and not moved) //ir a tesoros cuando tengamos varias unidades y cuevas conquistadas
-    {
-      //buscar unidades amigas cerca y sin ir a cuevas asi les da tiempo a los magos llegar
-
-    }*/
     if(not moved)
     {
       ir_tesoro(u);
@@ -361,8 +346,13 @@ struct PLAYER_NAME : public Player {
       if(cell(u.pos).type==Outside)
       {
         entrar_dentro(u);
-        //ir_tesoro(u);
       }
+      //durante las primera rondas juntar
+      /*else if(round()<11)
+      {
+        //juntarse
+
+      }*/
       else
       {
         dwarv_cueva(u);      
@@ -402,28 +392,3 @@ RegisterPlayer(PLAYER_NAME);
 
 
 
-/*Pos bfs_tresor (vector<vector<Pos>> &previos, Pos origen) 
-  {
-    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
-    queue<Pos> Q;
-
-    Q.push(origen);
-    dist[origen.i][origen.j] = 0;
-
-    while (not Q.empty()) 
-    {
-      Pos p = Q.front(); 
-      Q.pop();
-      for (auto& d : dirs) {
-        Pos v=p+Pos(d.first,d.second);  
-        if (bon_vei(v) and dist[v.i][v.j] == INF) 
-        {
-	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
-          previos[v.i][v.j]=p;
-	        Q.push(v);
-          if (cell(v.i,v.j).treasure) return Pos(v.i,v.j);   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
-        }
-      }
-    }
-    return Pos(0,0);
-  }*/
