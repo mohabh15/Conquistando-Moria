@@ -247,7 +247,7 @@ struct PLAYER_NAME : public Player {
       }
       moved=true;
     }
-    for (int d = 0; d < 7 and not moved; ++d) 
+    for (int d = 0; d < 8 and not moved; ++d) 
     {
       Pos p1 = u.pos + Dir(d);
       Cell c1 = cell(p1);
@@ -385,4 +385,4 @@ RegisterPlayer(PLAYER_NAME);
 
 
 
-
+//V.2
