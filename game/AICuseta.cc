@@ -80,17 +80,13 @@ struct PLAYER_NAME : public Player {
   }
 
   //Si hay troll o orco cerca
-  bool troll_orco(Unit &u, Pos &enemigo) 
+  bool troll(Cell &enemigo) 
   {
-   bool res=false;
-   for (auto& d : dirs) 
-   {
-      enemigo = u.pos+Pos(d.first,d.second); 
-      for(unsigned int i=0; i< trolls().size(); ++i)
-      {
-        if(cell(enemigo).id == trolls()[i]) res=true;
-      }   
-    }
+    bool res=false;
+    for(unsigned int i=0; i< trolls().size(); ++i)
+    {
+      if(enemigo.id == trolls()[i]) res=true;
+    }   
     return res;
   }
 
@@ -323,6 +319,14 @@ struct PLAYER_NAME : public Player {
         command(u.id,Dir(d));
         moved=true;
       }
+      else if(c1.id!= -1 and troll(c1))
+      {
+        //escapar
+        if(d>3) command(u.id,Dir(d-4)); 
+        else command(u.id,Dir(d+4));
+        moved=true;
+
+      }
       //Si hay enemigo con poca vida
       else if(c1.id!= -1 and not unidad_mia(c1.id))
       {
@@ -409,3 +413,4 @@ RegisterPlayer(PLAYER_NAME);
 
 
 //CONSEGUIR NO MORIR: COMO USAR BIEN LOS MAGOS 
+
