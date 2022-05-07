@@ -367,7 +367,6 @@ struct PLAYER_NAME : public Player {
       //si esta en el exterior
       if(cell(u.pos).type==Outside)
       {
-        //entrar_dentro(u);
         ir_dwarv(u);
       }
       else
@@ -384,11 +383,6 @@ struct PLAYER_NAME : public Player {
  */
 RegisterPlayer(PLAYER_NAME);
 
-
-
-
-
-//CONSEGUIR NO MORIR: COMO USAR BIEN LOS MAGOS 
 
 
 
