@@ -57,6 +57,24 @@ struct PLAYER_NAME : public Player {
     return res;
   }
 
+  bool unidad_mia(int unit_id)      
+  {
+    bool ret=false;
+    if(unit_id!=-1)
+    {
+      for(unsigned int i=0; i<  wizards(me()).size() and ret==false; ++i)
+      {
+        if(unit_id ==  wizards(me())[i]) ret=true;
+      }
+      for(unsigned int i=0; i<  dwarves(me()).size() and ret==false; ++i)
+      {
+        if(unit_id ==  dwarves(me())[i]) ret=true;
+      }
+    }
+    else ret=true;
+    return ret;
+  }
+
 
   //metodo dwarvs
   void dwarvs(Unit &u)
@@ -74,7 +92,7 @@ struct PLAYER_NAME : public Player {
       q.pop();
       Cell c=cell(v);
 
-      if (c.id==-1 and not (c.id!=-1 and unit(c.id).player!=me()) and (c.treasure or (c.owner!=me() and c.type==Cave)))
+      if ( c.id==-1 and (c.treasure or (c.owner!=me() and c.type==Cave)) )
       {
         command(u.id, dir);
         moved=true;
@@ -177,7 +195,8 @@ struct PLAYER_NAME : public Player {
       bool moved=false;
       for (int d=0; d<8 and not moved;++d)
       {
-        if (pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).id!=-1 and unit(cell(u.pos+Dir(d)).id).player!=me())
+        
+        if (pos_ok(u.pos+Dir(d))  and not unidad_mia( cell(u.pos+Dir(d)).id) )  //Hacer a mi manera
         {
           command(id,Dir(d));
           moved=true;

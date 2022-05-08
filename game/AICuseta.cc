@@ -149,6 +149,10 @@ struct PLAYER_NAME : public Player {
   bool bon_vei_wizards (Pos celda) {
   return celda.i >= 2 and celda.j >= 2 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
   }
+
+
+
+  
   Pos buscar_dwarv (vector<vector<Pos>> &previos, Pos origen) 
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
@@ -173,6 +177,12 @@ struct PLAYER_NAME : public Player {
     }  
     return Pos(0,0);
   }
+
+
+
+
+
+
   void ir_dwarv(Unit &u)
   {
     int n=rows(), m=cols();
@@ -279,7 +289,7 @@ struct PLAYER_NAME : public Player {
   }
 
 
- void move_dwarves()
+ void ir_dwarves()
  {
     for (unsigned int i=0; i<dwarves(me()).size(); ++i)
     {
@@ -407,7 +417,7 @@ struct PLAYER_NAME : public Player {
   virtual void play () 
   {
     //mover dwarves
-    move_dwarves();
+    ir_dwarves();
     /*for(unsigned int i=0; i< dwarves(me()).size(); ++i)
     {
       int id=dwarves(me())[i];
