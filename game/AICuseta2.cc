@@ -62,9 +62,9 @@ struct PLAYER_NAME : public Player {
   void dwarvs(Unit &u)
   {
     vector<vector<bool>> visitados(60,vector<bool>(60,false));
-    bool vist=true, moved=false;
     priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
     q.push({0,{u.pos,None}});
+    bool vist=true,moved=false;
 
     while (not q.empty() and not moved)
     {
@@ -124,9 +124,9 @@ struct PLAYER_NAME : public Player {
   void wizard(Unit &u)
   {
     vector<vector<bool>> visitados(60,vector<bool>(60,false));
-    bool vist=true, moved=false;
     queue<pair<Pos,Dir>> q;
     q.push({u.pos,None});
+    bool vist=true,moved=false;
 
 
     while (not q.empty() and not moved)
