@@ -59,7 +59,7 @@ struct PLAYER_NAME : public Player {
 
 
 
-  //Variables i Estr. Dades
+  /*//Variables i Estr. Dades
   const int INF = 1e9;
   vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
 
@@ -115,7 +115,7 @@ struct PLAYER_NAME : public Player {
     {
       siguiente=previo;
       previo = previos[previo.i][previo.j];
-    }*/
+    }
     //Mover a siguiente     
     int fila = u.pos.i-siguiente.i;     
     int col = u.pos.j-siguiente.j;
@@ -136,7 +136,7 @@ struct PLAYER_NAME : public Player {
       else if(col==1) command(u.id,LB);
       else command(u.id,BR);
     }
-  }
+  }*/
 
 
 
@@ -145,6 +145,7 @@ struct PLAYER_NAME : public Player {
 
   //Buscar el duende mas cerca con vida < 100
   vector<pair<int,int>> dirs_wizards = { {0,1},{1,0},{0,-1},{-1,0}};
+   const int INF = 1e9;
   bool bon_vei_wizards (Pos celda) {
   return celda.i >= 2 and celda.j >= 2 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
   }
@@ -166,7 +167,7 @@ struct PLAYER_NAME : public Player {
 	        dist[v.i][v.j] = dist[p.i][p.j] + 1;
           previos[v.i][v.j]=p;
 	        Q.push(v);
-          if (dwarv_mio(cell(v.i,v.j).id) and unit(cell(v.i,v.j).id).health !=100 ) return Pos(v.i,v.j);   
+          if (dwarv_mio(cell(v.i,v.j).id)  ) return Pos(v.i,v.j);   
         }
       }
     }  
@@ -178,7 +179,6 @@ struct PLAYER_NAME : public Player {
     vector<vector<Pos>> previos(n,vector<Pos>(m));
 
     Pos Destino = buscar_dwarv(previos,u.pos);
-    //cout<<Destino.i<<Destino.j<<endl;
     Pos siguiente;
     Pos previo = previos[Destino.i][Destino.j];
     while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
@@ -350,54 +350,7 @@ struct PLAYER_NAME : public Player {
 
 
 
-//Transformar
-void move_wizards()
-{
-  vector<int> W = wizards(me());
-  int n=W.size();
-  for (int r=0; r<n; ++r){
-      int id=W[r];
-      Pos inicial=unit(id).pos;
-      vector<vector<bool>> visited(60,vector<bool>(60,false));
-      visited[inicial.i][inicial.j]=true;
-      balrog_troll(visited); //pone las celdas donde esta el balrog como visitadas para no visitarlas
-      queue<pair<Pos,Dir>> qu;
-      Dir newdir=None;
-      bool primera=true;
-      qu.push(make_pair(inicial,newdir));
-      bool found=false;
-      while (not qu.empty() and not found){
-          bool enemigo=false;
-          Pos act_pos=qu.front().first;
-          Dir act_dir=qu.front().second; qu.pop();
-          Cell c=cell(act_pos);
-          newdir=act_dir;
-          
-          if (c.id!=-1 and (unit(c.id).player!=me() or (unit(c.id).player==me() and unit(c.id).type==Wizard))) enemigo=true;
-          if (c.id!=-1 and not enemigo and unit(c.id).player==me() and unit(c.id).type == Dwarf) {
-              found=true;
-              command(id,newdir);
-          }
-          else { //mirar veins
-              for (int p=0; p<4 and not found; ++p){
-                  Pos newpos;
-                  newpos=act_pos+Dir(p*2);
-                  if (posicion_valida_wizard(newpos,visited)){
-                      if (primera) {
-                          if (p==0) newdir=Bottom;
-                          else if (p==1) newdir=Right;
-                          else if (p==2) newdir=Top;
-                          else if (p==3) newdir=Left;
-                      }
-                      visited[newpos.i][newpos.j]=true;
-                      qu.push(make_pair(newpos,newdir));
-                  }
-              }
-              primera=false;
-          }
-      } 
-   }
-  }
+
 
 
 
@@ -471,6 +424,7 @@ void move_wizards()
       }
     }*/
     //mover wizards
+    //move_wizards();
     for(unsigned int i=0; i<wizards(me()).size(); ++i)
     {
       int id=wizards(me())[i];

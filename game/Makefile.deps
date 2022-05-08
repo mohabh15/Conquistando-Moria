@@ -1,6 +1,6 @@
 AICuseta.o: AICuseta.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
-AICuseta2.0.o: AICuseta2.0.cc Player.hh Info.hh Settings.hh Structs.hh \
+AICuseta2.o: AICuseta2.cc Player.hh Info.hh Settings.hh Structs.hh \
  Utils.hh State.hh Action.hh Random.hh Registry.hh
 AIDemo.o: AIDemo.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh

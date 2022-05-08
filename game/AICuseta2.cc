@@ -5,7 +5,7 @@
  * Write the name of your player and save this file
  * with the same name and .cc extension.
  */
-#define PLAYER_NAME Cuseta
+#define PLAYER_NAME Cuseta2
 
 
 struct PLAYER_NAME : public Player {
@@ -33,9 +33,9 @@ struct PLAYER_NAME : public Player {
   {
     bool res=false;
     Pos balrog_pos=unit(balrog_id()).pos;
-    for (int i=-3; i<=3;++i)
+    for (int i=-2; i<=2;++i)
     {
-      for (int j=-3; j<=3; ++j)
+      for (int j=-2; j<=2; ++j)
       {
         if (Pos(balrog_pos.i+i,balrog_pos.j+j) == pos ) res=true;
       }
@@ -105,10 +105,58 @@ struct PLAYER_NAME : public Player {
 
 
 
+  bool bon_vei_wizards (Pos celda) 
+  {
+    return pos_ok(celda) and not balrog_troll(celda) and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
+  }
+  //Dwarv mio
+  bool dwarv_mio(int unit_id)      
+  {
+    bool ret=false;
+    for(unsigned int i=0; i<  dwarves(me()).size() and ret==false; ++i)
+    {
+      if(unit_id ==  dwarves(me())[i]) ret=true;
+    }
+    return ret;
+  }
 
   //Metodo wizards
   void wizard(Unit &u)
   {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    bool vist=true, moved=false;
+    queue<pair<Pos,Dir>> q;
+    q.push({u.pos,None});
+
+
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.front().first;
+      Dir dir=q.front().second;
+      q.pop();
+      Cell c=cell(v);
+
+      if (dwarv_mio(c.id)) 
+      {
+        command(u.id,dir);
+        moved=true;
+      }
+      
+      else
+      { 
+        for (int d=0; d<8 and not moved; d+=2)
+        {
+          Pos pos=v+Dir(d);
+          if (bon_vei(pos) and pos!=u.pos and not visitados[pos.i][pos.j])
+          {
+            if (vist) dir=Dir(d);
+            visitados[pos.i][pos.j]=true;
+            q.push({pos,dir});
+          }
+        }
+        vist=false;
+      }
+    } 
     
   }
 
