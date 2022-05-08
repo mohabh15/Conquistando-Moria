@@ -22,85 +22,6 @@ struct PLAYER_NAME : public Player {
    * Types and attributes for your player can be defined here.
    */
 
-  //buscar el tesoro mas cerca i ir
-  const int INF = 1e9;
-  void ir_tesoro (Unit u) 
-  {
-    int n=rows(), m=cols();
-    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
-    vector<vector<Pos>> previos(n,vector<Pos>(m));
-    queue<Pos> Q;
-    Q.push(u.pos);
-    dist[u.pos.i][u.pos.j] = 0;
-    bool trobat=false;
-    Pos Destino;
-    while (not Q.empty() and not trobat) 
-    {
-      Pos p = Q.front(); 
-      Q.pop();
-
-      if (cell(p).treasure) 
-      {
-        Destino=p;
-        trobat=true;
-      }
-      for (int d=0; d<8 and not trobat; ++d) 
-      {
-        Pos v=p+Dir(d);  
-        if (bon_vei(v)) 
-        {
-          Cell c = cell(v);
-          if(c.type == Cave or c.type == Outside)
-          {
-            if(dist[v.i][v.j] > dist[p.i][p.j] + 1)
-            {
-              dist[v.i][v.j] = dist[p.i][p.j] + 1;
-              previos[v.i][v.j]=p;
-              Q.push(v); 
-            }
-          }
-          else
-          {
-            if(dist[v.i][v.j] > dist[p.i][p.j] + c.turns)
-            {
-              dist[v.i][v.j] = dist[p.i][p.j] + c.turns;
-              previos[v.i][v.j]=p;
-              Q.push(v); 
-            }
-          }
-        }
-      }
-    }
-    Pos siguiente;
-    Pos previo = previos[Destino.i][Destino.j];
-    while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
-    {
-      siguiente=previo;
-      previo = previos[previo.i][previo.j];
-    }
-    //Mover a siguiente     
-    int fila = u.pos.i-siguiente.i;     
-    int col = u.pos.j-siguiente.j;
-    if(fila==0)
-    {
-      if(col==1) command(u.id,Left);
-      else command(u.id,Right);
-    }
-    else if(fila==1)      
-    {
-      if(col==0) command(u.id,Top);
-      else if(col==1) command(u.id,TL);
-      else command(u.id,RT);
-    }
-    else if(fila==-1)
-    {
-      if(col==0) command(u.id,Bottom);
-      else if(col==1) command(u.id,LB);
-      else command(u.id,BR);
-    }
-  }
-
-
   //pos Bon vei per anar
   bool bon_vei(Pos& pos)
   {
@@ -270,32 +191,21 @@ struct PLAYER_NAME : public Player {
     {
       int id=dwarves(me())[i];
       Unit u= unit(id);
-      
 
       bool moved=false;
       for (int d=0; d<8 and not moved;++d)
       {
-        if(pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).treasure )
-        {
-          command(u.id,Dir(d));
-          moved=true;
-        }
-        else if (pos_ok(u.pos+Dir(d))  and not unidad_mia( cell(u.pos+Dir(d)).id) )  //Hacer a mi manera
+        
+        if (pos_ok(u.pos+Dir(d))  and not unidad_mia( cell(u.pos+Dir(d)).id) )  //Hacer a mi manera
         {
           command(id,Dir(d));
           moved=true;
         }
-        
       }
-      if(round()<100 and not moved)
-      {
-        ir_tesoro(u);
-      }
-      else if(not moved) 
+      if(not moved) 
       {
         dwarvs(u);    
       }
-      
     }
     //Wizards
     for(unsigned int i=0; i<wizards(me()).size(); ++i)

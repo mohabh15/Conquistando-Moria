@@ -59,23 +59,32 @@ struct PLAYER_NAME : public Player {
 
 
 
-  /*//Variables i Estr. Dades
-  const int INF = 1e9;
-  vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
-
-  Pos djsktra_tresor (vector<vector<Pos>> &previos, Pos origen) 
+  //Variables i Estr. Dades
+  //const int INF = 1e9;
+  //vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
+  void ir_tesoro (Unit u) 
   {
+    int n=rows(), m=cols();
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
-    priority_queue<Pos> Q;
-    //priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
-    Q.push(origen);
-    dist[origen.i][origen.j] = 0;
-    while (not Q.empty()) 
+    vector<vector<Pos>> previos(n,vector<Pos>(m));
+    queue<Pos> Q;
+    Q.push(u.pos);
+    dist[u.pos.i][u.pos.j] = 0;
+    bool trobat=false;
+    Pos Destino;
+    while (not Q.empty() and not trobat) 
     {
-      Pos p = Q.top(); 
+      Pos p = Q.front(); 
       Q.pop();
-      for (auto& d : dirs) {
-        Pos v=p+Pos(d.first,d.second);  
+
+      if (cell(p).treasure) 
+      {
+        Destino=p;
+        trobat=true;
+      }
+      for (int d=0; d<8 and not trobat; ++d) 
+      {
+        Pos v=p+Dir(d);  
         if (bon_vei(v)) 
         {
           Cell c = cell(v);
@@ -97,21 +106,12 @@ struct PLAYER_NAME : public Player {
               Q.push(v); 
             }
           }
-          if ( (c.id==-1 and (c.treasure or (c.owner!=me() and c.type==Cave))) or (c.id!=-1 and unit(c.id).player!=me()) ) return v;   //si encuentra un tesoro acaba == al destino/tesoro mas cerca debe debolver esta posicion
         }
       }
     }
-    return Pos(0,0);
-  }
-  void ir_tesoro(Unit &u)
-  {
-    int n=rows(), m=cols();
-    vector<vector<Pos>> previos(n,vector<Pos>(m));
-
-    //Pos Destino = djsktra_tresor(previos,u.pos);
-    Pos siguiente = djsktra_tresor(previos,u.pos);;
-    //Pos previo = previos[Destino.i][Destino.j];
-    /*while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
+    Pos siguiente;
+    Pos previo = previos[Destino.i][Destino.j];
+    while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
     {
       siguiente=previo;
       previo = previos[previo.i][previo.j];
@@ -136,7 +136,15 @@ struct PLAYER_NAME : public Player {
       else if(col==1) command(u.id,LB);
       else command(u.id,BR);
     }
-  }*/
+  }
+
+
+
+
+
+
+
+
 
 
 
@@ -149,10 +157,6 @@ struct PLAYER_NAME : public Player {
   bool bon_vei_wizards (Pos celda) {
   return celda.i >= 2 and celda.j >= 2 and celda.i < rows() and celda.j < cols() and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
   }
-
-
-
-  
   Pos buscar_dwarv (vector<vector<Pos>> &previos, Pos origen) 
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
@@ -180,10 +184,7 @@ struct PLAYER_NAME : public Player {
 
 
 
-
-
-
-  void ir_dwarv(Unit &u)
+void ir_dwarv(Unit &u)
   {
     int n=rows(), m=cols();
     vector<vector<Pos>> previos(n,vector<Pos>(m));
@@ -243,6 +244,26 @@ struct PLAYER_NAME : public Player {
     }
   }
 
+  void dwarv_cueva(Unit &u)
+  {
+    bool moved=false;
+    for (int d = 0; d < 8 and not moved; ++d) 
+    {
+      Pos p1 = u.pos + Dir(d);
+      Cell c1 = cell(p1);
+
+      if(c1.treasure)
+      {
+        command(u.id,Dir(d));
+        moved=true;
+      }
+    }
+    if(not moved)
+    {
+      ir_tesoro(u);   
+    }
+  }
+
 
 
 
@@ -289,117 +310,6 @@ struct PLAYER_NAME : public Player {
   }
 
 
- void ir_dwarves()
- {
-    for (unsigned int i=0; i<dwarves(me()).size(); ++i)
-    {
-      int id=dwarves(me())[i];
-      Unit u = unit(id);
-
-      bool moved=false;
-      for (int d=0; d<8 and not moved;++d)
-      {
-        if (pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).id!=-1 and unit(cell(u.pos+Dir(d)).id).player!=me())
-        {
-          command(id,Dir(d));
-          moved=true;
-        }
-      }
-      if(not moved) 
-      {
-        tesoro(u);    
-      }
-    }
-  }
-
-
-  void tesoro(Unit &u)
-  {
-    vector<vector<bool>> visitados(60,vector<bool>(60,false));
-    bool vist=true, moved=false;
-    priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
-    q.push({0,{u.pos,None}});
-
-    while (not q.empty() and not moved)
-    {
-      Pos v=q.top().second.first;
-      Dir dir=q.top().second.second;
-      int dist=q.top().first;
-      q.pop();
-      Cell c=cell(v);
-
-      if (c.id==-1 and not (c.id!=-1 and unit(c.id).player!=me()) and (c.treasure or (c.owner!=me() and c.type==Cave)))
-      {
-        command(u.id, dir);
-        moved=true;
-      }
-
-      else 
-      {
-        for (int d=0; d<8 and not moved; ++d)
-        {
-          Pos pos;
-          pos=v+Dir(d);
-          int distancia=dist;
-          if (bon_vei(pos) and pos!=u.pos and not visitados[pos.i][pos.j])
-          {
-            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
-            else if (cell(pos).treasure) distancia=0;
-            else ++distancia;
-            if (vist) dir=Dir(d);
-            visitados[pos.i][pos.j]=true;
-            q.push({distancia,{pos,dir}});
-          }
-        }
-        vist=false;
-      }
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -417,8 +327,8 @@ struct PLAYER_NAME : public Player {
   virtual void play () 
   {
     //mover dwarves
-    ir_dwarves();
-    /*for(unsigned int i=0; i< dwarves(me()).size(); ++i)
+    //ir_dwarves();
+    for(unsigned int i=0; i< dwarves(me()).size(); ++i)
     {
       int id=dwarves(me())[i];
       Unit u= unit(id);
@@ -432,7 +342,7 @@ struct PLAYER_NAME : public Player {
       {
         dwarv_cueva(u);      
       }
-    }*/
+    }
     //mover wizards
     //move_wizards();
     for(unsigned int i=0; i<wizards(me()).size(); ++i)
