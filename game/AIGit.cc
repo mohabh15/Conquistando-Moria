@@ -133,12 +133,14 @@ struct PLAYER_NAME : public Player {
             bool primera=true;
             qu.push(make_pair(inicial,newdir));
             bool found=false;
+
             while (not qu.empty() and not found){
                 bool enemigo=false;
                 Pos act_pos=qu.front().first;
                 Dir act_dir=qu.front().second; qu.pop();
                 Cell c=cell(act_pos);
                 newdir=act_dir;
+                
                 if (c.id!=-1 and (unit(c.id).player!=me() or (unit(c.id).player==me() and unit(c.id).type==Wizard))) enemigo=true;
                 if (c.id!=-1 and not enemigo and unit(c.id).player==me() and unit(c.id).type == Dwarf) {
                     found=true;

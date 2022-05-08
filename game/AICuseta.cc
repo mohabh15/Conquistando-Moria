@@ -62,9 +62,7 @@ struct PLAYER_NAME : public Player {
   //Variables i Estr. Dades
   const int INF = 1e9;
   vector<pair<int,int>> dirs = { {0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1} };
-  bool bon_vei (Pos celda) {
-    return pos_ok(celda) and not balrog_troll(celda) and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss; 
-  }
+
   Pos djsktra_tresor (vector<vector<Pos>> &previos, Pos origen) 
   {
     vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
@@ -236,91 +234,49 @@ struct PLAYER_NAME : public Player {
   }
 
 
-  //dwarv en cueva 
-  void dwarv_cueva(Unit &u)
+
+
+
+
+
+
+                            
+
+
+
+
+  bool bon_vei(Pos& pos)
   {
-    bool moved=false;
-    for (int j=0;j<8 and not moved;++j)
-    {
-        if (pos_ok(u.pos+Dir(j)) and cell(u.pos+Dir(j)).id!=-1 and unit(cell(u.pos+Dir(j)).id).player!=me())
-        {
-          command(u.id,Dir(j));
-          moved=true;
-        }
-    }
-    if(not moved)
-    {
-      ir_tesoro(u);
-    }
+    return pos_ok(pos) and not balrog_troll(pos) and cell(pos).type!=Granite and cell(pos).type!=Abyss;
   }
 
-
-
-   bool posicion_valida_dwarf(Pos& newpos)
-   {
-     return pos_ok(newpos) and not balrog_troll(newpos) and (cell(newpos).type==Cave or cell(newpos).type==Rock or cell(newpos).type==Outside);
-   }
-    
-
-    bool balrog_troll(Pos &pos)
+  bool balrog_troll(Pos &pos)
+  {
+    bool res=false;
+    Pos balrog_pos=unit(balrog_id()).pos;
+    for (int i=-3; i<=3;++i)
     {
-      bool res=false;
-
-      Pos bal_pos=unit(balrog_id()).pos;
-      for (int p=-3; p<=3;++p)
+      for (int j=-3; j<=3; ++j)
       {
-        for (int k=-3; k<=3; ++k)
-        {
-          if (Pos(bal_pos.i+p,bal_pos.j+k) == pos ) res=true;
-        }
+        if (Pos(balrog_pos.i+i,balrog_pos.j+j) == pos ) res=true;
       }
-      
-      vector<int> trolls_id=trolls();
-      int n=trolls_id.size();
-      for (int k=0; k<n and not res; ++k)
-      {
-        for (int p=-2; p<=2;++p)
-        {
-          for (int u=-2; u<=2; ++u)
-          {
-            Pos troll_pos=unit(trolls_id[k]).pos;
-            if (Pos(troll_pos.i+p,troll_pos.j+u) == pos) res=true;
-          }
-        }
-      }
-      return res;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    vector<int> trolls_id=trolls();
+    int n=trolls_id.size();
+    for (int k=0; k<n and not res; ++k)
+    {
+      for (int i=-2; i<=2;++i)
+      {
+        for (int j=-2; j<=2; ++j)
+        {
+          Pos troll_pos=unit(trolls_id[k]).pos;
+          if (Pos(troll_pos.i+i,troll_pos.j+j) == pos) res=true;
+        }
+      }
+    }
+    return res;
+  }
 
 
  void move_dwarves()
@@ -330,16 +286,16 @@ struct PLAYER_NAME : public Player {
       int id=dwarves(me())[i];
       Unit u = unit(id);
 
-      bool enemigo=false;
-      for (int d=0; d<8 and not enemigo;++d)
+      bool moved=false;
+      for (int d=0; d<8 and not moved;++d)
       {
         if (pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).id!=-1 and unit(cell(u.pos+Dir(d)).id).player!=me())
         {
-          enemigo=true;
           command(id,Dir(d));
+          moved=true;
         }
       }
-      if(not enemigo) 
+      if(not moved) 
       {
         tesoro(u);    
       }
@@ -349,49 +305,131 @@ struct PLAYER_NAME : public Player {
 
   void tesoro(Unit &u)
   {
-    vector<vector<bool>> visited(60,vector<bool>(60,false));
-
-    bool primera=true, found=false;
-    Dir newdir=None;
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    bool vist=true, moved=false;
     priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
     q.push({0,{u.pos,None}});
 
-    while (not q.empty() and not found)
+    while (not q.empty() and not moved)
     {
-      Pos act_pos=q.top().second.first;
-      Dir act_dir=q.top().second.second;
-      int act_distance=q.top().first;
+      Pos v=q.top().second.first;
+      Dir dir=q.top().second.second;
+      int dist=q.top().first;
       q.pop();
-      Cell c=cell(act_pos);
-      newdir=act_dir;
+      Cell c=cell(v);
 
       if (c.id==-1 and not (c.id!=-1 and unit(c.id).player!=me()) and (c.treasure or (c.owner!=me() and c.type==Cave)))
       {
-        found=true;
-        command(u.id, act_dir);
+        command(u.id, dir);
+        moved=true;
       }
 
       else 
       {
-        for (int p=0; p<8 and not found; ++p)
+        for (int d=0; d<8 and not moved; ++d)
         {
-          Pos newpos;
-          newpos=act_pos+Dir(p);
-          int new_distance=act_distance;
-          if (posicion_valida_dwarf(newpos) and newpos!=u.pos and not visited[newpos.i][newpos.j])
+          Pos pos;
+          pos=v+Dir(d);
+          int distancia=dist;
+          if (bon_vei(pos) and pos!=u.pos and not visitados[pos.i][pos.j])
           {
-            if (cell(newpos).type==Rock) new_distance+=cell(newpos).turns;
-            else if (cell(newpos).treasure) new_distance=0;
-            else ++new_distance;
-            if (primera) newdir=Dir(p);
-            visited[newpos.i][newpos.j]=true;
-            q.push({new_distance,{newpos,newdir}});
+            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
+            else if (cell(pos).treasure) distancia=0;
+            else ++distancia;
+            if (vist) dir=Dir(d);
+            visitados[pos.i][pos.j]=true;
+            q.push({distancia,{pos,dir}});
           }
         }
-        primera=false;
+        vist=false;
       }
     }
   }
+
+
+
+
+
+//Transformar
+void move_wizards()
+{
+  vector<int> W = wizards(me());
+  int n=W.size();
+  for (int r=0; r<n; ++r){
+      int id=W[r];
+      Pos inicial=unit(id).pos;
+      vector<vector<bool>> visited(60,vector<bool>(60,false));
+      visited[inicial.i][inicial.j]=true;
+      balrog_troll(visited); //pone las celdas donde esta el balrog como visitadas para no visitarlas
+      queue<pair<Pos,Dir>> qu;
+      Dir newdir=None;
+      bool primera=true;
+      qu.push(make_pair(inicial,newdir));
+      bool found=false;
+      while (not qu.empty() and not found){
+          bool enemigo=false;
+          Pos act_pos=qu.front().first;
+          Dir act_dir=qu.front().second; qu.pop();
+          Cell c=cell(act_pos);
+          newdir=act_dir;
+          
+          if (c.id!=-1 and (unit(c.id).player!=me() or (unit(c.id).player==me() and unit(c.id).type==Wizard))) enemigo=true;
+          if (c.id!=-1 and not enemigo and unit(c.id).player==me() and unit(c.id).type == Dwarf) {
+              found=true;
+              command(id,newdir);
+          }
+          else { //mirar veins
+              for (int p=0; p<4 and not found; ++p){
+                  Pos newpos;
+                  newpos=act_pos+Dir(p*2);
+                  if (posicion_valida_wizard(newpos,visited)){
+                      if (primera) {
+                          if (p==0) newdir=Bottom;
+                          else if (p==1) newdir=Right;
+                          else if (p==2) newdir=Top;
+                          else if (p==3) newdir=Left;
+                      }
+                      visited[newpos.i][newpos.j]=true;
+                      qu.push(make_pair(newpos,newdir));
+                  }
+              }
+              primera=false;
+          }
+      } 
+   }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -478,84 +516,3 @@ RegisterPlayer(PLAYER_NAME);
 
 
 
-
-
-
-
-/*
-  
-    
-    void move_dwarves(){
-        vector<int> D = dwarves(me());
-        int n=D.size();
-        for (int i=0; i<n; ++i){
-            int id=D[i];
-            Pos inicial=unit(id).pos;
-            vector<vector<bool>> visited(60,vector<bool>(60,false));
-            visited[inicial.i][inicial.j]=true;
-            balrog_troll(visited);
-            priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
-            Dir newdir=None;
-            q.push({0,{inicial,newdir}});
-            bool primera=true, found=false, enemy=false,team=false;
-            for (int j=0;j<8 and not enemy;++j){
-                if (pos_ok(inicial+Dir(j)) and cell(inicial+Dir(j)).id!=-1 and unit(cell(inicial+Dir(j)).id).player!=me()){
-                    enemy=true;
-                    newdir=Dir(j);
-                }
-            }
-            if (enemy){
-                command(id,newdir);
-            }
-
-
-
-            else {
-                while (not q.empty() and not found){
-                    team=false;
-                    Pos act_pos=q.top().second.first;
-                    Dir act_dir=q.top().second.second;
-                    int act_distance=q.top().first;
-                    q.pop();
-                    Cell c=cell(act_pos);
-                    newdir=act_dir;
-                    if (c.id!=-1 and unit(c.id).player!=me()) {
-                        team=true;
-                    }
-                    //no unidad  i o hay tesoro o es cueva y no es mia 
-                    if (c.id==-1 and not team and (c.treasure or (c.owner!=me() and c.type==Cave))){
-                        found=true;
-                        command(id, act_dir);
-                    }
-                    else {
-                        for (int p=0; p<8 and not found; ++p){
-                            Pos newpos;
-                            newpos=act_pos+Dir(p);  //mira el vecino
-                            int new_distance=act_distance;
-                            if (posicion_valida_dwarf(newpos,visited)){
-                                if (cell(newpos).type==Rock) new_distance+=cell(newpos).turns;
-                                else if (cell(newpos).treasure) new_distance=0;
-                                else ++new_distance;
-                                if (primera) {
-                                    if (p==0) newdir=Bottom;
-                                    else if (p==1) newdir=BR;
-                                    else if (p==2) newdir=Right;
-                                    else if (p==3) newdir=RT;
-                                    else if (p==4) newdir=Top;
-                                    else if (p==5) newdir=TL;
-                                    else if (p==6) newdir=Left;
-                                    else if (p==7) newdir=LB;
-                                }
-                                visited[newpos.i][newpos.j]=true;
-                                q.push({new_distance,{newpos,newdir}});
-                            }
-                        }
-                        primera=false;
-                    }
-                }
-            }
-
-        }
-    }
-
-  */
