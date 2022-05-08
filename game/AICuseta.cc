@@ -199,9 +199,6 @@ struct PLAYER_NAME : public Player {
     }
   }
 
-
-
-
   bool bon_vei_wizards (Pos celda) 
   {
     return pos_ok(celda) and not balrog_troll(celda) and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
@@ -225,7 +222,6 @@ struct PLAYER_NAME : public Player {
     q.push({u.pos,None});
     bool vist=true,moved=false;
 
-
     while (not q.empty() and not moved)
     {
       Pos v=q.front().first;
@@ -233,7 +229,7 @@ struct PLAYER_NAME : public Player {
       q.pop();
       Cell c=cell(v);
 
-      if (dwarv_mio(c.id)) 
+      if (dwarv_mio(c.id) /*and unit(c.id).health<70*/) 
       {
         command(u.id,dir);
         moved=true;
@@ -256,9 +252,6 @@ struct PLAYER_NAME : public Player {
     } 
     
   }
-
-
-
 
   /**
    * Play method, invoked once per each round.
