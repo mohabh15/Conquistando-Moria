@@ -380,11 +380,164 @@ RegisterPlayer(PLAYER_NAME);
 
 
 
+/*
+
+void dwarvs2(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    queue<pair<Pos,Dir>> q;
+    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   
+    q.push({u.pos,None});
+    bool vist=true,moved=false;
+    
+    
+    
+    while (not q.empty() and not moved)
+    {
+      Pos p=q.front().first;
+      Dir dir=q.front().second;
+      dist[p.i][p.j]=0;
+      q.pop();
+      Cell c=cell(p);
+
+      if ( c.id==-1 and (c.treasure or (c.owner!=me() and c.type==Cave)) )
+      {
+        command(u.id, dir);
+        moved=true;
+      }
+
+      else 
+      {
+        for (int d=0; d<8 and not moved; ++d)
+        {
+          Pos v=p+Dir(d);  
+          if (bon_vei(v) and not visitados[v.i][v.j]) 
+          {
+            Cell c = cell(v);
+            if(c.type == Cave or c.type == Outside)
+            {
+              if(dist[v.i][v.j] > dist[p.i][p.j] + 1)
+              {
+                dist[v.i][v.j] = dist[p.i][p.j] + 1;
+                if (vist) dir=Dir(d);
+                visitados[v.i][v.j]=true;
+                q.push({v,dir}); 
+              }
+            }
+            else
+            {
+              if(dist[v.i][v.j] > dist[p.i][p.j] + c.turns)
+              {
+                dist[v.i][v.j] = dist[p.i][p.j] + c.turns;
+                if (vist) dir=Dir(d);
+                visitados[v.i][v.j]=true;
+                q.push({v,dir}); 
+              }
+            }
+          }
+        }
+        vist=false;
+      }
+    }
+  }
+
+
+*/
 
 
 
 
 
+
+
+/*
+IMPORTANTE
+
+void ir_tesoro (Unit u) 
+  {
+    int n=rows(), m=cols();
+    vector<vector<int>> dist(rows(),vector<int>(cols(), INF));   //pones todos a distancia infinita
+    vector<vector<Pos>> previos(n,vector<Pos>(m));
+    queue<Pos> Q;
+    Q.push(u.pos);
+    dist[u.pos.i][u.pos.j] = 0;
+    bool trobat=false;
+    Pos Destino;
+    while (not Q.empty() and not trobat) 
+    {
+      Pos p = Q.front(); 
+      Q.pop();
+
+      if (cell(p).treasure) 
+      {
+        Destino=p;   
+        trobat=true;
+      }
+      for (int d=0; d<8 and not trobat; ++d) 
+      {
+        Pos v=p+Dir(d);  
+        if (bon_vei(v) ) 
+        {
+          Cell c = cell(v);
+          if(c.type == Cave or c.type == Outside)
+          {
+            if(dist[v.i][v.j] > dist[p.i][p.j] + 1)
+            {
+              dist[v.i][v.j] = dist[p.i][p.j] + 1;
+              previos[v.i][v.j]=p;
+              Q.push(v); 
+            }
+          }
+          else
+          {
+            if(dist[v.i][v.j] > dist[p.i][p.j] + c.turns)
+            {
+              dist[v.i][v.j] = dist[p.i][p.j] + c.turns;
+              previos[v.i][v.j]=p;
+              Q.push(v); 
+            }
+          }
+        }
+      }
+    }
+    Pos siguiente;
+    Pos previo = previos[Destino.i][Destino.j];
+    while(Destino.i!=0 and Destino.j!=0 and previo != u.pos)
+    {
+      siguiente=previo;
+      previo = previos[previo.i][previo.j];
+    }
+    //Mover a siguiente     
+    int fila = u.pos.i-siguiente.i;     
+    int col = u.pos.j-siguiente.j;
+    if(fila==0)
+    {
+      if(col==1) command(u.id,Left);
+      else command(u.id,Right);
+    }
+    else if(fila==1)      
+    {
+      if(col==0) command(u.id,Top);
+      else if(col==1) command(u.id,TL);
+      else command(u.id,RT);
+    }
+    else if(fila==-1)
+    {
+      if(col==0) command(u.id,Bottom);
+      else if(col==1) command(u.id,LB);
+      else command(u.id,BR);
+    }
+  }
+
+
+
+
+
+
+
+
+
+*/
 
 
 
