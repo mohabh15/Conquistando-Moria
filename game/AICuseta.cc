@@ -71,14 +71,13 @@ struct PLAYER_NAME : public Player {
   {
     return pos_ok(pos) and cell(pos).type!=Granite and cell(pos).type!=Abyss;
   }
-
   //No hi ha balrog ni trolls en pos
-  void balrog_trolls(vector<vector<bool>> &enemigos)  //Calcular una vez por unidad solo para bajar uso cpu
+  void balrog_trolls(vector<vector<bool>> &enemigos)  
   {
     Pos balrog_pos=unit(balrog_id()).pos;
-    for (int i=-2; i<=2;++i)
+    for (int i=-3; i<=3;++i)
     {
-      for (int j=-2; j<=2; ++j)
+      for (int j=-3; j<=3; ++j)
       {
         if (pos_ok(balrog_pos.i+i,balrog_pos.j+j)) enemigos[balrog_pos.i+i][balrog_pos.j+j]=true;
       }
