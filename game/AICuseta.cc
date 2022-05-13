@@ -183,8 +183,8 @@ struct PLAYER_NAME : public Player {
       Dir dir=q.front().second;
       q.pop();
 
-      //Mover wizard si encuentra un dwarv mio dañado
-      if (dwarv_mio(cell(v).id) /*and unit(cell(v).id).health<100*/) 
+      //Mover wizard si encuentra un dwarv mio 
+      if (dwarv_mio(cell(v).id) ) 
       {
         command(u.id,dir);
         moved=true;
@@ -220,7 +220,7 @@ struct PLAYER_NAME : public Player {
       bool moved=false;
       for (int d=0; d<8 and not moved;++d)
       {
-        if(pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).treasure ) //si hay tesoro mover y evitar llamar a tesoro
+        if(pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).treasure ) //si hay tesoro mover y evitar llamar a tesoro()
         {
           command(u.id,Dir(d));
           moved=true;
@@ -231,7 +231,7 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
-      if(round()<100 and not moved /*and dwarves(me()).size()>15*/)
+      if(round()<100 and not moved /*and dwarves(me()).size()>19*/)  //Ir adaptando estos parametros en funcion de los rivales
       {
         tesoro(u);
       }
