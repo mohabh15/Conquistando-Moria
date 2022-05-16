@@ -21,6 +21,49 @@ struct PLAYER_NAME : public Player {
   /**
    * Types and attributes for your player can be defined here.
    */
+  //Ir a por enemigos
+  void enemigos(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
+    balrog_trolls(visitados);
+    q.push({0,{u.pos,None}});
+    bool vist=true,moved=false;
+
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.top().second.first;
+      Dir dir=q.top().second.second;
+      int dist=q.top().first;
+      q.pop();
+
+      if (cell(v).id!=-1 and unit(cell(v).id).player!=me() )
+      {
+        command(u.id, dir);
+        moved=true;
+      }
+      else 
+      {
+        for (int d=0; d<8 and not moved; ++d)
+        {
+          Pos pos=v+Dir(d);
+          int distancia=dist;
+          if (bon_vei(pos) and not visitados[pos.i][pos.j])
+          {
+            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
+            else if (cell(pos).treasure) distancia=0;
+            else ++distancia;
+            if (vist) dir=Dir(d);
+            visitados[pos.i][pos.j]=true;
+            q.push({distancia,{pos,dir}});
+          }
+        }
+        vist=false;
+      }
+    }
+  }
+
+
 
   //buscar el tesoro mas cerca i ir
   const int INF = 1e9;
@@ -231,7 +274,12 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
-      if(round()<100 and not moved /*and dwarves(me()).size()>19*/)  //Ir adaptando estos parametros en funcion de los rivales
+      //Ir adaptando estos parametros en funcion de los rivales
+      if(round()<100 and not moved)
+      {
+        enemigos(u);
+      }
+      else if(round()<160 and not moved )  
       {
         tesoro(u);
       }

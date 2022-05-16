@@ -21,157 +21,276 @@ struct PLAYER_NAME : public Player {
   /**
    * Types and attributes for your player can be defined here.
    */
-  
-    bool posicion_valida_dwarf(const Pos& newpos,const vector<vector<bool>>& visited){
-        return pos_ok(newpos) and not visited[newpos.i][newpos.j] and (cell(newpos).type==Cave or cell(newpos).type==Rock or cell(newpos).type==Outside);
+  //Ir a por enemigos
+  void enemigos(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
+    balrog_trolls(visitados);
+    q.push({0,{u.pos,None}});
+    bool vist=true,moved=false;
+
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.top().second.first;
+      Dir dir=q.top().second.second;
+      int dist=q.top().first;
+      q.pop();
+
+      if (cell(v).id!=-1 and unit(cell(v).id).player!=me() )
+      {
+        command(u.id, dir);
+        moved=true;
+      }
+      else 
+      {
+        for (int d=0; d<8 and not moved; ++d)
+        {
+          Pos pos=v+Dir(d);
+          int distancia=dist;
+          if (bon_vei(pos) and not visitados[pos.i][pos.j])
+          {
+            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
+            else if (cell(pos).treasure) distancia=0;
+            else ++distancia;
+            if (vist) dir=Dir(d);
+            visitados[pos.i][pos.j]=true;
+            q.push({distancia,{pos,dir}});
+          }
+        }
+        vist=false;
+      }
     }
-  
-    bool posicion_valida_wizard(const Pos& newpos,const vector<vector<bool>>& visited){
-        return pos_ok(newpos) and not visited[newpos.i][newpos.j] and (cell(newpos).type==Cave or cell(newpos).type==Outside);
+  }
+
+
+
+  //buscar el tesoro mas cerca i ir
+  const int INF = 1e9;
+  void tesoro(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
+    balrog_trolls(visitados);
+    q.push({0,{u.pos,None}});
+    bool vist=true,moved=false;
+
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.top().second.first;
+      Dir dir=q.top().second.second;
+      int dist=q.top().first;
+      q.pop();
+
+      if (cell(v).treasure)
+      {
+        command(u.id, dir);
+        moved=true;
+      }
+      else 
+      {
+        for (int d=0; d<8 and not moved; ++d)
+        {
+          Pos pos=v+Dir(d);
+          int distancia=dist;
+          if (bon_vei(pos) and not visitados[pos.i][pos.j])
+          {
+            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
+            else if (cell(pos).treasure) distancia=0;
+            else ++distancia;
+            if (vist) dir=Dir(d);
+            visitados[pos.i][pos.j]=true;
+            q.push({distancia,{pos,dir}});
+          }
+        }
+        vist=false;
+      }
+    }
+  }
+
+
+  //pos Bon vei per anar
+  bool bon_vei(Pos& pos)
+  {
+    return pos_ok(pos) and cell(pos).type!=Granite and cell(pos).type!=Abyss;
+  }
+  //No hi ha balrog ni trolls en pos
+  void balrog_trolls(vector<vector<bool>> &enemigos)  
+  {
+    Pos balrog_pos=unit(balrog_id()).pos;
+    for (int i=-3; i<=3;++i)
+    {
+      for (int j=-3; j<=3; ++j)
+      {
+        if (pos_ok(balrog_pos.i+i,balrog_pos.j+j)) enemigos[balrog_pos.i+i][balrog_pos.j+j]=true;
+      }
     }
     
-    void balrog_troll(vector<vector<bool>>& visited){
-        Pos bal_pos=unit(balrog_id()).pos;
-        for (int p=-3; p<=3;++p){
-            for (int k=-3; k<=3; ++k){
-                if (pos_ok((bal_pos.i)+p,(bal_pos.j)+k)) visited[(bal_pos.i)+p][(bal_pos.j)+k]=true;
-            }
+    vector<int> id_trolls=trolls();
+    for (uint k=0; k<id_trolls.size(); ++k)
+    {
+      Pos troll_pos=unit(id_trolls[k]).pos;
+      for (int i=-2; i<=2;++i)
+      {
+        for (int j=-2; j<=2; ++j)
+        {
+          if (pos_ok(troll_pos.i+i,troll_pos.j+j)) enemigos[troll_pos.i+i][troll_pos.j+j]=true;
         }
-        vector<int> trolls_id=trolls();
-        int n=trolls_id.size();
-        for (int k=0; k<n; ++k){
-            for (int p=-2; p<=2;++p){
-                for (int u=-2; u<=2; ++u){
-                    Pos troll_pos=unit(trolls_id[k]).pos;
-                    if (pos_ok((troll_pos.i)+p,(troll_pos.j)+u)) visited[(troll_pos.i)+p][(troll_pos.j)+u]=true;
-                }
-            }
-        }
+      }
     }
+  }
+  //Comprobar que la unidad es mia o no
+  bool unidad_mia(int unit_id)    
+  {
+    bool ret=false;
+    if(unit_id!=-1)
+    {
+      if(unit(unit_id).player==me()) ret=true;
+    }
+    else ret=true;
+    return ret;
+  }
+
+
+
+  //metodo dwarvs
+  void dwarvs(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
+    balrog_trolls(visitados);
+    q.push({0,{u.pos,None}});
+    bool vist=true,moved=false;
+
+    //Djsktra para encontrar celda valida 
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.top().second.first;
+      Dir dir=q.top().second.second;
+      int dist=q.top().first;
+      q.pop();
+      Cell c=cell(v);
+
+      if ( c.id==-1 and c.owner!=me() and c.type==Cave )
+      {
+        command(u.id, dir);
+        moved=true;
+      }
+      else 
+      {
+        for (int d=0; d<8 and not moved; ++d)
+        {
+          Pos pos=v+Dir(d);
+          int distancia=dist;
+          if (bon_vei(pos) and not visitados[pos.i][pos.j])
+          {
+            if (cell(pos).type==Rock) distancia+=cell(pos).turns;
+            else ++distancia;
+            visitados[pos.i][pos.j]=true;
+            if (vist) dir=Dir(d);
+            q.push({distancia,{pos,dir}});
+          }
+        }
+        vist=false;
+      }
+    }
+  }
+
+
+  
+  bool bon_vei_wizards (Pos& celda) 
+  {
+    return pos_ok(celda) and cell(celda.i,celda.j).type != Granite and cell(celda.i,celda.j).type != Abyss and cell(celda.i,celda.j).type != Rock; 
+  }
+  //Dwarv mio
+  bool dwarv_mio(int unit_id)   
+  {
+    bool ret=false;
+    if(unit_id!=-1 and unit(unit_id).type==Dwarf and unit(unit_id).player==me()) ret=true;
+    return ret;
+  }
+
+  //Metodo wizard
+  void wizard(Unit &u)
+  {
+    vector<vector<bool>> visitados(60,vector<bool>(60,false));
+    balrog_trolls(visitados);
+    queue<pair<Pos,Dir>> q;
+    q.push({u.pos,None});
+    bool vist=true,moved=false;
     
-    void move_dwarves(){
-        vector<int> D = dwarves(me());
-        int n=D.size();
-        for (int i=0; i<n; ++i){
-            int id=D[i];
-            Pos inicial=unit(id).pos;
-            vector<vector<bool>> visited(60,vector<bool>(60,false));
-            visited[inicial.i][inicial.j]=true;
-            balrog_troll(visited);
-            priority_queue<pair<int,pair<Pos,Dir>>,vector<pair<int,pair<Pos,Dir>>>,greater<pair<int,pair<Pos,Dir>>>> q;
-            Dir newdir=None;
-            q.push({0,{inicial,newdir}});
-            bool primera=true, found=false, enemy=false,team=false;
-            for (int j=0;j<8 and not enemy;++j){
-                if (pos_ok(inicial+Dir(j)) and cell(inicial+Dir(j)).id!=-1 and unit(cell(inicial+Dir(j)).id).player!=me()){
-                    enemy=true;
-                    newdir=Dir(j);
-                }
-            }
-            if (enemy){
-                command(id,newdir);
-            }
-            else {
-                while (not q.empty() and not found){
-                    team=false;
-                    Pos act_pos=q.top().second.first;
-                    Dir act_dir=q.top().second.second;
-                    int act_distance=q.top().first;
-                    q.pop();
-                    Cell c=cell(act_pos);
-                    newdir=act_dir;
-                    if (c.id!=-1 and unit(c.id).player!=me()) {
-                        team=true;
-                    }
-                    //no unidad  i o hay tesoro o es cueva y no es mia 
-                    if (c.id==-1 and not team and (c.treasure or (c.owner!=me() and c.type==Cave))){
-                        found=true;
-                        command(id, act_dir);
-                    }
-                    else {
-                        for (int p=0; p<8 and not found; ++p){
-                            Pos newpos;
-                            newpos=act_pos+Dir(p);
-                            int new_distance=act_distance;
-                            if (posicion_valida_dwarf(newpos,visited)){
-                                if (cell(newpos).type==Rock) new_distance+=cell(newpos).turns;
-                                else if (cell(newpos).treasure) new_distance=0;
-                                else ++new_distance;
-                                if (primera) {
-                                    if (p==0) newdir=Bottom;
-                                    else if (p==1) newdir=BR;
-                                    else if (p==2) newdir=Right;
-                                    else if (p==3) newdir=RT;
-                                    else if (p==4) newdir=Top;
-                                    else if (p==5) newdir=TL;
-                                    else if (p==6) newdir=Left;
-                                    else if (p==7) newdir=LB;
-                                }
-                                visited[newpos.i][newpos.j]=true;
-                                q.push({new_distance,{newpos,newdir}});
-                            }
-                        }
-                        primera=false;
-                    }
-                }
-            }
+    //BFS para encontrar el dwarf mas cerca
+    while (not q.empty() and not moved)
+    {
+      Pos v=q.front().first;
+      Dir dir=q.front().second;
+      q.pop();
 
+      //Mover wizard si encuentra un dwarv mio 
+      if (dwarv_mio(cell(v).id) ) 
+      {
+        command(u.id,dir);
+        moved=true;
+      }
+      else
+      { 
+        for (int d=0; d<8 and not moved; d+=2)  //mirar vecinos
+        {
+          Pos pos=v+Dir(d);
+          if (bon_vei_wizards(pos) and not visitados[pos.i][pos.j]) //solo si buen vecino i no visitados
+          {
+            if (vist) dir=Dir(d);  //Guardar la direccion a la que ir 
+            visitados[pos.i][pos.j]=true;
+            q.push({pos,dir});
+          }
         }
-    }
+        vist=false;
+      }
+    }  
+  }
 
-    void move_wizards(){
-        vector<int> W = wizards(me());
-        int n=W.size();
-        for (int r=0; r<n; ++r){
-            int id=W[r];
-            Pos inicial=unit(id).pos;
-            vector<vector<bool>> visited(60,vector<bool>(60,false));
-            visited[inicial.i][inicial.j]=true;
-            balrog_troll(visited); //pone las celdas donde esta el balrog como visitadas para no visitarlas
-            queue<pair<Pos,Dir>> qu;
-            Dir newdir=None;
-            bool primera=true;
-            qu.push(make_pair(inicial,newdir));
-            bool found=false;
-
-            while (not qu.empty() and not found){
-                bool enemigo=false;
-                Pos act_pos=qu.front().first;
-                Dir act_dir=qu.front().second; qu.pop();
-                Cell c=cell(act_pos);
-                newdir=act_dir;
-                
-                if (c.id!=-1 and (unit(c.id).player!=me() or (unit(c.id).player==me() and unit(c.id).type==Wizard))) enemigo=true;
-                if (c.id!=-1 and not enemigo and unit(c.id).player==me() and unit(c.id).type == Dwarf) {
-                    found=true;
-                    command(id,newdir);
-                }
-                else { //mirar veins
-                    for (int p=0; p<4 and not found; ++p){
-                        Pos newpos;
-                        newpos=act_pos+Dir(p*2);
-                        if (posicion_valida_wizard(newpos,visited)){
-                            if (primera) {
-                                if (p==0) newdir=Bottom;
-                                else if (p==1) newdir=Right;
-                                else if (p==2) newdir=Top;
-                                else if (p==3) newdir=Left;
-                            }
-                            visited[newpos.i][newpos.j]=true;
-                            qu.push(make_pair(newpos,newdir));
-                        }
-                    }
-                    primera=false;
-                }
-            } 
-         }
-    }
   /**
    * Play method, invoked once per each round.
    */
-  virtual void play () {
-      move_dwarves();
-      move_wizards();
+  virtual void play () 
+  {
+    //Dwarfs
+    for(unsigned int i=0; i< dwarves(me()).size(); ++i)
+    {
+      int id=dwarves(me())[i];
+      Unit u= unit(id);
+      
+      bool moved=false;
+      for (int d=0; d<8 and not moved;++d)
+      {
+        if(pos_ok(u.pos+Dir(d)) and cell(u.pos+Dir(d)).treasure ) //si hay tesoro mover y evitar llamar a tesoro()
+        {
+          command(u.id,Dir(d));
+          moved=true;
+        }
+        else if (pos_ok(u.pos+Dir(d))  and not unidad_mia( cell(u.pos+Dir(d)).id) )  
+        {
+          command(id,Dir(d));
+          moved=true;
+        }
+      }
+      if(round()<90 and not moved)
+      {
+        enemigos(u);
+      }
+      else if(not moved) 
+      {
+        dwarvs(u);  
+      }
+    }
+    //Wizards
+    for(unsigned int i=0; i<wizards(me()).size(); ++i)
+    {
+      int id=wizards(me())[i];
+      Unit u= unit(id);
+
+      wizard(u);
+    }
   }
 
 };
