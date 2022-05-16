@@ -274,12 +274,7 @@ struct PLAYER_NAME : public Player {
           moved=true;
         }
       }
-      //Ir adaptando estos parametros en funcion de los rivales
       if(round()<100 and not moved)
-      {
-        enemigos(u);
-      }
-      else if(round()<160 and not moved )  
       {
         tesoro(u);
       }
@@ -305,4 +300,3 @@ struct PLAYER_NAME : public Player {
  * Do not modify the following line.
  */
 RegisterPlayer(PLAYER_NAME);
-

@@ -2,9 +2,11 @@ AICuseta.o: AICuseta.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 AICuseta1.o: AICuseta1.cc Player.hh Info.hh Settings.hh Structs.hh \
  Utils.hh State.hh Action.hh Random.hh Registry.hh
+AICuseta_v1.5.o: AICuseta_v1.5.cc Player.hh Info.hh Settings.hh \
+ Structs.hh Utils.hh State.hh Action.hh Random.hh Registry.hh
+AICuseta_v2.o: AICuseta_v2.cc Player.hh Info.hh Settings.hh Structs.hh \
+ Utils.hh State.hh Action.hh Random.hh Registry.hh
 AIDemo.o: AIDemo.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
- State.hh Action.hh Random.hh Registry.hh
-AIGit.o: AIGit.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 Action.o: Action.cc Action.hh Structs.hh Utils.hh
 Game.o: Game.cc Game.hh Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
